@@ -227,3 +227,22 @@
     transform: rotate(0deg);
   }
 }
+
+.customScrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #444;
+}
+
+.customScrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.customScrollbar::-webkit-scrollbar-track {
+  background: #444;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+  border: 3px solid #444;
+}

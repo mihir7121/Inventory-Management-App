@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material'
+import { Box, Stack, Typography, Button, Modal, TextField, useMediaQuery } from '@mui/material'
 import { firestore } from '@/firebase'
+import styles from "./page.module.css"
 import {
   collection,
   doc,
@@ -18,11 +19,13 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: '80%',
+  maxWidth: 400,
   bgcolor: 'white',
+  color: 'white',
   border: '2px solid #000',
+  borderRadius: '5px',
   boxShadow: 24,
-  p: 4,
   display: 'flex',
   flexDirection: 'column',
   gap: 3,
@@ -31,8 +34,10 @@ const style = {
 export default function Home() {
   // We'll add our component logic here
   const [inventory, setInventory] = useState([])
+  const [filteredInventory, setFilteredInventory] = useState([])
   const [open, setOpen] = useState(false)
   const [itemName, setItemName] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'))
@@ -47,6 +52,15 @@ export default function Home() {
   useEffect(() => {
     updateInventory()
   }, [])
+
+  useEffect(() => {
+    // Filter inventory based on the search query
+    setFilteredInventory(
+      inventory.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    )
+  }, [searchQuery, inventory])
 
   const addItem = async (item) => {
     const docRef = doc(collection(firestore, 'inventory'), item)
@@ -78,6 +92,9 @@ export default function Home() {
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
+  // Check if screen size is small
+  const isSmallScreen = useMediaQuery('(max-width:600px)')
+
   return (
     <Box
       width="100vw"
@@ -87,6 +104,8 @@ export default function Home() {
       flexDirection={'column'}
       alignItems={'center'}
       gap={2}
+      className={styles.center}
+      padding={isSmallScreen ? 2 : 0}
     >
       <Modal
         open={open}
@@ -123,9 +142,13 @@ export default function Home() {
       <Button variant="contained" onClick={handleOpen}>
         Add New Item
       </Button>
-      <Box border={'1px solid #333'}>
+      <Box
+        border={'2px solid #333'}
+        borderRadius={'15px'}
+        width={isSmallScreen ? '90%' : '800px'}
+      >
         <Box
-          width="800px"
+          width="100%"
           height="100px"
           bgcolor={'#ADD8E6'}
           display={'flex'}
@@ -136,25 +159,92 @@ export default function Home() {
             Inventory Items
           </Typography>
         </Box>
-        <Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
-          {inventory.map(({name, quantity}) => (
+        <Box
+          width="100%"
+          display={'flex'}
+          justifyContent={'space-between'}
+          paddingX={5}
+          paddingY={2}
+          bgcolor={'#f0f0f0'}
+        >
+          <Typography
+            variant={'h6'}
+            color={'#333'}
+            style={{
+              width: isSmallScreen ? '40%' : '37%',
+              textAlign: 'left',
+            }}
+          >
+            Item Name
+          </Typography>
+          <Typography
+            variant={'h6'}
+            color={'#333'}
+            style={{
+              width: isSmallScreen ? '40%' : '30%',
+              textAlign: 'left',
+            }}
+          >
+            Quantity
+          </Typography>
+          <Box
+            width={isSmallScreen ? '100%' : '40%'}
+            display="flex"
+            justifyContent="flex-end"
+          >
+            <TextField
+              id="search-bar"
+              variant="outlined"
+              placeholder="Search items"
+              size="small"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              fullWidth={isSmallScreen}
+            />
+          </Box>
+        </Box>
+        <Stack
+          width="100%"
+          marginTop="25px"
+          maxWidth={isSmallScreen ? '90%' : '800px'}
+          height="330px"
+          spacing={2}
+          overflow={'auto'}
+          className={styles.customScrollbar}
+        >
+          {filteredInventory.map(({name, quantity}) => (
             <Box
               key={name}
               width="100%"
-              minHeight="150px"
+              
+              // minHeight="150px"
               display={'flex'}
               justifyContent={'space-between'}
               alignItems={'center'}
-              bgcolor={'#f0f0f0'}
               paddingX={5}
             >
-              <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
+              <Typography
+                variant="h5"
+                color="#ccc"
+                textAlign="left"
+                style={{
+                  width: isSmallScreen ? '40%' : '40%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </Typography>
-              <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
-                Quantity: {quantity}
+              <Typography
+                variant="h5"
+                color="#ccc"
+                textAlign="left"
+                style={{ width: isSmallScreen ? '20%' : '20%' }}
+              >
+                {quantity}
               </Typography>
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={2} style={{ width: '40%' }}>
                 <Button variant="contained" onClick={() => addItem(name)}>
                   Add
                 </Button>
